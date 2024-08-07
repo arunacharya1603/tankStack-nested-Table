@@ -5,15 +5,14 @@ const multer = require('multer');
 const fs = require('fs');
 const cors = require('cors');
 
-
-
-
-
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+}).catch(error => {
+  console.error('Database connection error:', error.message);
 });
+
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () => {
@@ -26,6 +25,7 @@ const subuserSchema = new mongoose.Schema({
   phone: String,
   profile: String,
 });
+
 // Create a Mongoose schema
 const userSchema = new mongoose.Schema({
   name: String,
@@ -44,11 +44,13 @@ const User = mongoose.model('Student', userSchema);
 
 // Create an Express app
 const app = express();
+
 const allowedOrigins = [
+  'http://localhost:3000',
   'http://localhost:5173',
-  'https://tank-stack-nested-table-api.vercel.app',
-  'https://tank-stack-nested-table-api.vercel.app/students'
+  'https://tank-stack-nested-table-api.vercel.app'
 ];
+
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
@@ -59,6 +61,8 @@ const corsOptions = {
     }
   },
   optionsSuccessStatus: 200,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 app.use(cors(corsOptions));
@@ -82,7 +86,8 @@ app.get('/students', async (req, res) => {
     const students = await User.find();
     res.json(students);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching students:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -95,7 +100,8 @@ app.get('/students/:id', async (req, res) => {
     }
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching user by ID:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -114,7 +120,8 @@ app.post('/students', upload.single('profile'), async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error creating user:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -141,21 +148,10 @@ app.put('/students/:id', upload.single('profile'), async (req, res) => {
     await user.save();
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error updating user:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-function deleteMultipleFilesSync(filePaths) {
-  // Loop through the array of file paths
-  filePaths.forEach((filePath) => {
-    try {
-      fs.unlinkSync(filePath);
-      console.log(`File deleted successfully: ${filePath}`);
-    } catch (err) {
-      console.error(`Error deleting file: ${filePath}`, err);
-    }
-  });
-}
 
 // DELETE a user by ID
 app.delete('/students/:id', async (req, res) => {
@@ -179,7 +175,8 @@ app.delete('/students/:id', async (req, res) => {
 
     res.json({ message: 'User deleted' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error deleting user:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
