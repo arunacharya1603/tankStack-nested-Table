@@ -8,7 +8,7 @@ import { CssBaseline, GlobalStyles } from '@mui/joy';
 import { CssVarsProvider } from '@mui/joy/styles';
 import _ from 'lodash';
 import axios from 'axios';
-axios.defaults.baseURL = 'http://localhost:3000';
+axios.defaults.baseURL = 'https://tank-stack-nested-table-api.vercel.app';
 
 const nestedData = (data) => {
   const buildTree = (items, parentId = null) => {
